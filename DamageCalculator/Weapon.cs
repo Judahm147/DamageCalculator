@@ -9,21 +9,13 @@ namespace DamageCalculator
     abstract public class Weapon
     {
         protected List<DamageType> damages;
-        protected List<Mod> mods = new List<Mod> {null,null,null,null,null,null,null,null};
+        protected List<Mod> mods = new List<Mod> { null, null, null, null, null, null, null, null };
         public double crit_chance { get; protected set; }
         protected Modifier cc_mult;
         public double crit_damage { get; protected set; }
+        public double base_damage { get; protected set; }
 
         public abstract void report();
-        public double BaseDamage()
-        {
-            double pom = 0.0;
-            foreach (var item in damages)
-            {
-                pom += item.damage;
-            }
-            return pom;
-        }
 
         public double TotalDamage()
         {
@@ -63,14 +55,120 @@ namespace DamageCalculator
         {
             switch (field)
             {
-                case "damage":
+                case "base_damage":
                     DamageEffect(m);
                     break;
                 case "critchance":
                     CCEffect(m);
                     break;
+                case "projectiles":
+                    Multishot(m);
+                    break;
+                case "damage":
+                    InstallDamageType(m);
+                    break;
+            }   
+
+        }
+
+        private void Multishot(Modifier m)
+        {
+            throw new NotImplementedException();
+        }
+
+        private DamageType GetDamageType(DamageType type)
+        {
+            foreach (DamageType item in damages)
+            {
+                if (type.GetType() == item.GetType())
+                    return item;
             }
-            
+            return null;
+        }
+
+        private void InstallDamageType(Modifier m)
+        {
+            DamageType dt = DamageType.GetDamageType(m.name);
+            bool added = true;
+            if (dt is PhysicalDamage)
+            {
+                dt = GetDamageType(dt);
+                foreach (Modifier modifier in dt.multipliers)
+                {
+                    if (m.name == modifier.name)
+                    {
+                        modifier.effect += m.effect;
+                        added = true;
+                        break;
+                    }
+                }
+                if (!added)
+                {
+                    Modifier mod = new Modifier(m.name, m.effect + 1);
+                    dt.multipliers.Add(mod);
+                }
+                return;
+            }
+            else if (dt is ElementalDamage)
+            {
+                DamageType pom = dt;
+                bool combine = false;
+                foreach (DamageType item in damages)
+                {
+                    if (item.GetType() == dt.GetType())
+                    {
+                        dt = item;
+                        break;
+                    }
+                    if (item.GetType().IsSubclassOf(typeof(BasicElementalDamage)) && (item.GetType() != dt.GetType()))
+                    {
+                        dt = CombinedElementalDamage.Combine(item, dt);
+                        pom = item;
+                        combine = true;
+                        m.name = dt.name;
+                        break;
+                    }
+                    else if (item.GetType().IsSubclassOf(typeof(CombinedElementalDamage)) && ((CombinedElementalDamage)item).IsCombinedFrom(dt))
+                    {
+                        dt = item;
+                        m.name = item.name;
+                        break;
+                    }
+                }
+                if (combine)
+                {
+                    damages.Remove(pom);
+                    damages.Add(dt);
+                    foreach (Modifier modifier in dt.multipliers)
+                    {
+                        if (m.name == modifier.name)
+                        {
+                            modifier.effect += m.effect;
+                            added = true;
+                            break;
+                        }
+                    }
+                    return;
+                }
+                if (dt == pom)
+                {
+                    dt.damage = this.base_damage;
+                    dt.multipliers.Add(m);
+                    this.damages.Add(dt);
+                }
+                else
+                {
+                    foreach (Modifier modifier in dt.multipliers)
+                    {
+                        if (m.name == modifier.name)
+                        {
+                            modifier.effect += m.effect;
+                            added = true;
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         private void CCEffect(Modifier m)
@@ -108,43 +206,23 @@ namespace DamageCalculator
             else
                 return crit_chance * cc_mult.effect;
         }
-    }
 
-    public class Mk1_Paris : Weapon
-    {
-        public Mk1_Paris()
+        public bool HasDamageType(DamageType dt)
         {
-            damages = new List<DamageType>(3);
-            damages.Add(new ImpactDamage(6.0));
-            damages.Add(new PunctureDamage(96.0));
-            damages.Add(new SlashDamage(18.0));
-            crit_chance = 0.3;
-            crit_damage = 2.0;
-        }
-
-        public override void report()
-        {
-            Console.WriteLine();
             foreach (DamageType item in damages)
             {
-                item.report();
+                if (item.GetType() == dt.GetType())
+                    return true;
             }
-            Console.WriteLine();
-            Console.WriteLine("Base damage: " + BaseDamage());
-            Console.WriteLine("Critical chance: " + CritChance());
-            Console.WriteLine("Critical damage multiplier: " + CritDamage());
-            Console.WriteLine();
-            Console.WriteLine("Damage without crit: " + TotalDamage());
-            Console.WriteLine("Damage when crit: " + DamageWhenCrit());
-            Console.WriteLine("Average damage: " + AverageDamage());
+            return false;
         }
 
-        private string CritDamage()
+        protected string CritDamage()
         {
             return crit_damage + "x";
         }
 
-        private string CritChance()
+        protected string CritChance()
         {
             return GetCritChance() * 100 + "%";
         }

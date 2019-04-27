@@ -24,7 +24,7 @@ namespace DamageCalculator
         }
         public override void InstallEffect(Weapon weapon)
         {
-            weapon.InstallEffect("damage",new Modifier("damage", 0.15 * (1 + rank)));
+            weapon.InstallEffect("base_damage", new Modifier("damage", 0.15 * (1 + rank)));
         }
     }
 
@@ -44,23 +44,61 @@ namespace DamageCalculator
         {
             weapon.InstallEffect("critchance", new Modifier("cc", 0.25 * (1 + rank)));
         }
+    }
 
-        public class SplitChamber : Mod
+    public class SplitChamber : Mod
+    {
+        public SplitChamber()
         {
-            public SplitChamber()
-            {
-                max_rank = 5;
-            }
+            max_rank = 5;
+        }
 
-            public SplitChamber(int r)
-            {
-                max_rank = 5;
-                rank = ((r <= max_rank) ? r : max_rank);
-            }
-            public override void InstallEffect(Weapon weapon)
-            {
-                weapon.InstallEffect("projectiles", new Modifier("multishot", 0.15 * (1 + rank)));
-            }
+        public SplitChamber(int r)
+        {
+            max_rank = 5;
+            rank = ((r <= max_rank) ? r : max_rank);
+        }
+        public override void InstallEffect(Weapon weapon)
+        {
+            weapon.InstallEffect("projectiles", new Modifier("multishot", 0.15 * (1 + rank)));
+        }
+    }
+
+    public class Hellfire : Mod
+    {
+        public Hellfire()
+        {
+            max_rank = 5;
+        }
+
+        public Hellfire(int r)
+        {
+            max_rank = 5;
+            rank = ((r <= max_rank) ? r : max_rank);
+        }
+
+        public override void InstallEffect(Weapon weapon)
+        {
+            weapon.InstallEffect("damage", new Modifier("Heat", 0.15 * (1 + rank)));
+        }
+    }
+
+    public class Stormbringer : Mod
+    {
+        public Stormbringer()
+        {
+            max_rank = 5;
+        }
+
+        public Stormbringer(int r)
+        {
+            max_rank = 5;
+            rank = ((r <= max_rank) ? r : max_rank);
+        }
+
+        public override void InstallEffect(Weapon weapon)
+        {
+            weapon.InstallEffect("damage", new Modifier("Electricity", 0.15 * (1 + rank)));
         }
     }
 }

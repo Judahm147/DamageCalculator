@@ -50,6 +50,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Weapon.cs" />
+    <Compile Include="Weapons\Mk1_Paris.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

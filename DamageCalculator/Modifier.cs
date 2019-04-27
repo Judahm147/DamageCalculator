@@ -4,8 +4,8 @@
 
     public class Modifier
     {
-        public string name;
-        public double effect;
+        public string name { get; set; }
+        public double effect { get; set; }
 
         public Modifier(string name,double effect)
         {

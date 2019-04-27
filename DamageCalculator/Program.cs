@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DamageCalculator.Weapons;
 
 namespace DamageCalculator
 {
@@ -16,6 +17,8 @@ namespace DamageCalculator
             w.report();
             w.InstallMod(new PointStrike(5), 0);
             w.report();
+            DamageType dt = new PunctureDamage(1.0);
+            Console.WriteLine(w.HasDamageType(dt));
         }
     }
 }
